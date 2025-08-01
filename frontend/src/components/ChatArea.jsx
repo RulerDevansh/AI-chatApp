@@ -1177,7 +1177,7 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
             Select a chat to start messaging
           </h3>
           <p className="text-gray-500 dark:text-gray-400">
-            Choose a conversation from the sidebar to begin chatting
+            Choose a conversation to chat, generate AI responses, or summarize conversations with AI
           </p>
         </div>
       </div>
