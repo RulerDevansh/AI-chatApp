@@ -4,9 +4,7 @@ import ConnectDB from "./db/index.js";
 import { app } from './app.js';
 import { setupSocket } from './socket/index.js';
 
-dotenv.config({
-    // path: './env'
-})
+dotenv.config()
 
 const PORT = process.env.PORT || 5000;
 
