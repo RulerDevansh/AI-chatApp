@@ -1,0 +1,397 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== SCROLLBAR STYLES ===== */
+
+/* Modern Custom Scrollbar Styles */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(156, 163, 175, 0.4) 0%, rgba(107, 114, 128, 0.6) 100%);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(107, 114, 128, 0.7) 0%, rgba(75, 85, 99, 0.9) 100%);
+  transform: scaleY(1.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, rgba(75, 85, 99, 0.8) 0%, rgba(55, 65, 81, 1) 100%);
+}
+
+/* Dark mode scrollbar */
+.dark .custom-scrollbar {
+  scrollbar-color: rgba(75, 85, 99, 0.4) transparent;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(75, 85, 99, 0.5) 0%, rgba(55, 65, 81, 0.7) 100%);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(55, 65, 81, 0.8) 0%, rgba(31, 41, 55, 1) 100%);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, rgba(31, 41, 55, 0.9) 0%, rgba(17, 24, 39, 1) 100%);
+}
+
+/* Chat scrollbar - sleek and minimal */
+.chat-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 197, 94, 0.2) transparent;
+}
+
+.chat-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 6px;
+  margin: 4px 0;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.3) 0%, rgba(22, 163, 74, 0.5) 100%);
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.1);
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(22, 163, 74, 0.6) 0%, rgba(21, 128, 61, 0.8) 100%);
+  transform: scaleX(1.2);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.3);
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, rgba(21, 128, 61, 0.8) 0%, rgba(20, 83, 45, 1) 100%);
+}
+
+/* Dark mode chat scrollbar */
+.dark .chat-scrollbar {
+  scrollbar-color: rgba(34, 197, 94, 0.3) transparent;
+}
+
+.dark .chat-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.4) 0%, rgba(22, 163, 74, 0.6) 100%);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2);
+}
+
+.dark .chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(22, 163, 74, 0.7) 0%, rgba(21, 128, 61, 0.9) 100%);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.4);
+}
+
+.dark .chat-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, rgba(21, 128, 61, 0.9) 0%, rgba(20, 83, 45, 1) 100%);
+}
+
+/* Input textarea scrollbar - minimal and clean */
+.input-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 197, 94, 0.15) transparent;
+}
+
+.input-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.input-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.input-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(34, 197, 94, 0.3);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.input-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 197, 94, 0.5);
+  transform: scaleX(1.5);
+}
+
+.input-scrollbar::-webkit-scrollbar-thumb:active {
+  background: rgba(22, 163, 74, 0.7);
+}
+
+/* Dark mode input scrollbar */
+.dark .input-scrollbar {
+  scrollbar-color: rgba(34, 197, 94, 0.2) transparent;
+}
+
+.dark .input-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(34, 197, 94, 0.4);
+}
+
+.dark .input-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 197, 94, 0.6);
+}
+
+.dark .input-scrollbar::-webkit-scrollbar-thumb:active {
+  background: rgba(22, 163, 74, 0.8);
+}
+
+/* Sidebar scrollbar - subtle and clean */
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 114, 128, 0.2) transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 5px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.3);
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 85, 99, 0.5);
+  transform: scaleX(1.5);
+}
+
+/* Dark mode sidebar scrollbar */
+.dark .sidebar-scrollbar {
+  scrollbar-color: rgba(55, 65, 81, 0.3) transparent;
+}
+
+.dark .sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(55, 65, 81, 0.4);
+}
+
+.dark .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(31, 41, 55, 0.6);
+}
+
+/* Connection Manager scrollbar - professional look */
+.connection-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 197, 94, 0.25) transparent;
+}
+
+.connection-scrollbar::-webkit-scrollbar {
+  width: 7px;
+}
+
+.connection-scrollbar::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.5);
+  border-radius: 7px;
+  margin: 2px 0;
+}
+
+.connection-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, rgba(34, 197, 94, 0.4) 0%, rgba(22, 163, 74, 0.6) 100%);
+  border-radius: 7px;
+  border: 1px solid rgba(34, 197, 94, 0.1);
+  transition: all 0.3s ease;
+}
+
+.connection-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, rgba(22, 163, 74, 0.7) 0%, rgba(21, 128, 61, 0.9) 100%);
+  border-color: rgba(34, 197, 94, 0.3);
+  transform: scaleY(1.05);
+}
+
+/* Dark mode connection scrollbar */
+.dark .connection-scrollbar::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.3);
+}
+
+.dark .connection-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, rgba(34, 197, 94, 0.5) 0%, rgba(22, 163, 74, 0.7) 100%);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.dark .connection-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, rgba(22, 163, 74, 0.8) 0%, rgba(21, 128, 61, 1) 100%);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+/* Emoji picker scrollbar - playful and colorful */
+.emoji-picker-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 193, 7, 0.3) transparent;
+}
+
+.emoji-picker-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.emoji-picker-scrollbar::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.5);
+  border-radius: 8px;
+  margin: 4px 0;
+}
+
+.emoji-picker-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, 
+    rgba(255, 193, 7, 0.4) 0%, 
+    rgba(255, 165, 0, 0.6) 25%, 
+    rgba(255, 105, 180, 0.5) 50%, 
+    rgba(138, 43, 226, 0.6) 75%, 
+    rgba(34, 197, 94, 0.4) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.emoji-picker-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 193, 7, 0.6) 0%, 
+    rgba(255, 165, 0, 0.8) 25%, 
+    rgba(255, 105, 180, 0.7) 50%, 
+    rgba(138, 43, 226, 0.8) 75%, 
+    rgba(34, 197, 94, 0.6) 100%);
+  transform: scaleX(1.2) scaleY(1.05);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.emoji-picker-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, 
+    rgba(255, 193, 7, 0.8) 0%, 
+    rgba(255, 165, 0, 1) 25%, 
+    rgba(255, 105, 180, 0.9) 50%, 
+    rgba(138, 43, 226, 1) 75%, 
+    rgba(34, 197, 94, 0.8) 100%);
+  transform: scaleX(1.1) scaleY(1.02);
+}
+
+/* Dark mode emoji picker scrollbar */
+.dark .emoji-picker-scrollbar {
+  scrollbar-color: rgba(255, 193, 7, 0.4) transparent;
+}
+
+.dark .emoji-picker-scrollbar::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.3);
+}
+
+.dark .emoji-picker-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, 
+    rgba(255, 193, 7, 0.5) 0%, 
+    rgba(255, 165, 0, 0.7) 25%, 
+    rgba(255, 105, 180, 0.6) 50%, 
+    rgba(138, 43, 226, 0.7) 75%, 
+    rgba(34, 197, 94, 0.5) 100%);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.dark .emoji-picker-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 193, 7, 0.7) 0%, 
+    rgba(255, 165, 0, 0.9) 25%, 
+    rgba(255, 105, 180, 0.8) 50%, 
+    rgba(138, 43, 226, 0.9) 75%, 
+    rgba(34, 197, 94, 0.7) 100%);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.dark .emoji-picker-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, 
+    rgba(255, 193, 7, 0.9) 0%, 
+    rgba(255, 165, 0, 1) 25%, 
+    rgba(255, 105, 180, 1) 50%, 
+    rgba(138, 43, 226, 1) 75%, 
+    rgba(34, 197, 94, 0.9) 100%);
+}
+
+/* ===== MESSAGE ANIMATIONS ===== */
+
+@keyframes slideFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideFromLeft {
+  animation: slideFromLeft 0.3s ease-out;
+}
+
+/* deletion animation */
+.message-deleting {
+  animation: deleteMessage 0.8s ease-in-out forwards;
+}
+
+@keyframes deleteMessage {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.95) translateY(-10px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* ===== TOUCH INTERACTION STYLES ===== */
+
+/* Prevent passive event listener issues with draggable elements */
+.draggable-sidebar {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Improve touch responsiveness */
+.touch-responsive {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
