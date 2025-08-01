@@ -1174,9 +1174,10 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
             </svg>
           </div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <big>AI Chat</big> <br />
             Select a chat to start messaging
           </h3>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-gray-500 dark:text-gray-400 italic">
             Choose a conversation to chat, generate AI responses, or summarize conversations with AI
           </p>
         </div>
