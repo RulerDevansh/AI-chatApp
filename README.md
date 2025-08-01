@@ -140,11 +140,9 @@ A modern, feature-rich real-time chat application built with React and Node.js, 
 | **JWT** | Authentication | 9.0.2 |
 | **bcrypt** | Password Hashing | 6.0.0 |
 | **Cloudinary** | File Storage & Management | 2.7.0 |
-| **Multer** | File Upload Handling | 2.0.2 |
 | **Google Generative AI** | AI Integration | 1.10.0 |
 | **CORS** | Cross-Origin Resource Sharing | 2.8.5 |
 | **Cookie Parser** | Cookie Handling | 1.4.7 |
-| **dotenv** | Environment Configuration | 16.5.0 |
 | **Nodemon** | Development Server | 3.1.10 |
 
 ## 🔄 Future Enhancements
