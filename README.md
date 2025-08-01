@@ -148,12 +148,12 @@ A modern, feature-rich real-time chat application built with React and Node.js, 
 ## 🔄 Future Enhancements
 
 - [ ] **Group Chat Support**: Multi-user chat rooms
-- [ ] **Voice Messages**: Audio recording and playback
+- [ ] **Voice Call**: Audio Calling
+- [ ] **Video Calling**: WebRTC integration for video calls
 - [ ] **Message Reactions**: Emoji reactions to messages
 - [ ] **Message Search**: Full-text search across chat history
 - [ ] **Push Notifications**: Browser and mobile notifications
 - [ ] **Message Encryption**: End-to-end encryption for privacy
-- [ ] **Video Calling**: WebRTC integration for video calls
 - [ ] **Bot Integration**: Custom chatbot development
 - [ ] **Message Scheduling**: Schedule messages for later delivery
 - [ ] **Advanced AI Features**: Context-aware conversations
