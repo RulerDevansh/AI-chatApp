@@ -2,7 +2,17 @@
 
 A modern, feature-rich real-time chat application built with React and Node.js, featuring AI-powered assistance, file sharing, and comprehensive user management.
 
-![AIChat Banner](https://via.placeholder.com/800x200/4ADE80/FFFFFF?text=AIChat+-+Smart+Messaging+Platform)
+<div align="center">
+
+![AIChat Banner](https://img.shields.io/badge/AIChat-Smart%20Messaging%20Platform-4ADE80?style=for-the-badge&labelColor=1F2937&color=4ADE80)
+
+[![React](https://img.shields.io/badge/React-19.1.0-61DAFB?style=flat-square&logo=react&logoColor=white)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-4.8.1-010101?style=flat-square&logo=socket.io&logoColor=white)](https://socket.io/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://mongodb.com/)
+[![AI Powered](https://img.shields.io/badge/AI-Google%20Gemini-4285F4?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev/)
+
+</div>
 
 ## 🚀 Features
 
