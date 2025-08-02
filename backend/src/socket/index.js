@@ -2,10 +2,17 @@ import { Server } from 'socket.io';
 import { markMsgSeenRepo } from '../repositories/index.repository.js';
 
 export const setupSocket = (server) => {
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'https://devansh-ai-chat.vercel.app',
+    process.env.CORS_ORIGIN
+  ].filter(Boolean);
+
   const io = new Server(server, {
     cors: {
-      origin: process.env.CORS_ORIGIN || '*',
+      origin: allowedOrigins,
       methods: ['GET', 'POST'],
+      credentials: true
     },
     // Add connection stability settings
     pingTimeout: 60000,
