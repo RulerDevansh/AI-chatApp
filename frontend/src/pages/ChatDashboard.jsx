@@ -26,6 +26,7 @@ const ChatDashboard = () => {
   const [isLoadingConnections, setIsLoadingConnections] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [lastNotificationUpdate, setLastNotificationUpdate] = useState({});
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   
   // Mobile drag state
   const [isDragging, setIsDragging] = useState(false);
@@ -244,6 +245,27 @@ const ChatDashboard = () => {
     };
   }, []);
 
+  // Function to reorder chats based on unread messages
+  const reorderChatsByUnread = useCallback((chats, notifications) => {
+    // Separate chats into two groups: those with unread messages and those without
+    const chatsWithUnread = chats.filter(chat => notifications[chat.id] > 0);
+    const chatsWithoutUnread = chats.filter(chat => !notifications[chat.id] || notifications[chat.id] === 0);
+    
+    // Sort chats with unread by unread count (highest first) and then by time
+    chatsWithUnread.sort((a, b) => {
+      const aCount = notifications[a.id] || 0;
+      const bCount = notifications[b.id] || 0;
+      if (aCount !== bCount) {
+        return bCount - aCount; // Higher unread count first
+      }
+      // If same unread count, sort by last message time
+      return new Date(b.lastMessage?.time || 0) - new Date(a.lastMessage?.time || 0);
+    });
+
+    // Return reordered list: unread chats first, then others
+    return [...chatsWithUnread, ...chatsWithoutUnread];
+  }, []);
+
   // Function to load unread message counts
   const loadUnreadMessages = useCallback(async () => {
     if (!user?.id) return;
@@ -258,57 +280,34 @@ const ChatDashboard = () => {
         newNotifications[item.senderId] = item.count;
       });
       
-      // Only update notifications if there are actual changes to prevent conflicts
-      setNotifications(prev => {
-        const hasChanges = Object.keys(newNotifications).some(senderId => 
-          prev[senderId] !== newNotifications[senderId]
-        ) || Object.keys(prev).some(senderId => 
-          !(senderId in newNotifications) && prev[senderId] > 0
-        );
-        
-        return hasChanges ? newNotifications : prev;
-      });
+      // Always update notifications and reorder chats
+      setNotifications(newNotifications);
       
-      // Update chat list with unread counts and reorder chats with unread messages to top
+      // Update chat list with unread counts and reorder
       setChats(prevChats => {
         const updatedChats = prevChats.map(chat => {
           const unreadCount = newNotifications[chat.id] || 0;
-          // Only update if the count actually changed
-          if (chat.unread !== unreadCount || chat.lastMessage?.isRead !== (unreadCount === 0)) {
-            return {
-              ...chat,
-              unread: unreadCount,
-              lastMessage: {
-                ...chat.lastMessage,
-                isRead: unreadCount === 0
-              }
-            };
-          }
-          return chat;
+          return {
+            ...chat,
+            unread: unreadCount,
+            lastMessage: {
+              ...chat.lastMessage,
+              isRead: unreadCount === 0
+            }
+          };
         });
 
-        // Reorder chats: chats with unread messages should be at the top
-        const chatsWithUnread = updatedChats.filter(chat => newNotifications[chat.id] > 0);
-        const chatsWithoutUnread = updatedChats.filter(chat => !newNotifications[chat.id] || newNotifications[chat.id] === 0);
-        
-        // Sort chats with unread by unread count (highest first) and then by time
-        chatsWithUnread.sort((a, b) => {
-          const aCount = newNotifications[a.id] || 0;
-          const bCount = newNotifications[b.id] || 0;
-          if (aCount !== bCount) {
-            return bCount - aCount; // Higher unread count first
-          }
-          // If same unread count, sort by last message time
-          return new Date(b.lastMessage?.time || 0) - new Date(a.lastMessage?.time || 0);
-        });
-
-        // Return reordered list: unread chats first, then others
-        return [...chatsWithUnread, ...chatsWithoutUnread];
+        // Always reorder chats based on unread messages
+        return reorderChatsByUnread(updatedChats, newNotifications);
       });
+      
+      // Mark initial data as loaded
+      setInitialDataLoaded(true);
     } catch (error) {
       console.error('Error loading unread messages:', error);
+      setInitialDataLoaded(true); // Still mark as loaded even on error
     }
-  }, [user?.id]);
+  }, [user?.id, reorderChatsByUnread]);
 
   // Function to load connections
   const loadConnections = useCallback(async () => {
@@ -378,8 +377,12 @@ const ChatDashboard = () => {
   // Load connections only once when component mounts
   useEffect(() => {
     if (user?.id) {
-      loadConnections();
-      loadUnreadMessages(); // Load unread message counts
+      const loadInitialData = async () => {
+        await loadConnections();
+        await loadUnreadMessages(); // Load unread message counts
+      };
+      
+      loadInitialData();
       
       // Set up periodic refresh of unread messages (every 60 seconds to reduce conflicts)
       const unreadRefreshInterval = setInterval(() => {
@@ -391,6 +394,20 @@ const ChatDashboard = () => {
       };
     }
   }, [user?.id, loadConnections, loadUnreadMessages]);
+
+  // Reorder chats when both chats and notifications are available (for page reloads and initial loads)
+  useEffect(() => {
+    if (chats.length > 0) {
+      // Check if we have any notifications
+      const hasNotifications = Object.keys(notifications).length > 0;
+      const hasUnreadChats = Object.values(notifications).some(count => count > 0);
+      
+      // If we have notifications with actual unread counts, reorder
+      if (hasNotifications && hasUnreadChats) {
+        setChats(prevChats => reorderChatsByUnread(prevChats, notifications));
+      }
+    }
+  }, [chats.length, notifications, reorderChatsByUnread]);
 
   // Update current chat's last message when messages change
   useEffect(() => {
