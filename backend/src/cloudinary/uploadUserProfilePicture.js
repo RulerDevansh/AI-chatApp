@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs/promises';
 import { cloudinary } from "./config.js";
 
 export default async function uploadUserProfilePictureOnCloudinary(req, userId) {
@@ -26,9 +26,7 @@ export default async function uploadUserProfilePictureOnCloudinary(req, userId) 
         const renameResult = await cloudinary.uploader.rename(tempPublicId, finalPublicId);
 
         // Step 4: Delete local file
-        fs.unlink(req.file.path, (err) => {
-            if (err) console.error('Error deleting local file:', err);
-        });
+        await fs.unlink(req.file.path);
 
         // Step 5: Return final image URL
         return renameResult.secure_url;
