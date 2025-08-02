@@ -309,6 +309,13 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
   };
 
   // ==================== COMPONENT LIFECYCLE ====================
+  // Test parseCloudinaryContent function
+  useEffect(() => {
+    const testUrl = "https://res.cloudinary.com/test/image/upload/v123456789/test.jpg";
+    const testResult = parseCloudinaryContent(testUrl);
+    console.log('Test parseCloudinaryContent:', testResult);
+  }, []);
+
   // Reset drag state when chat changes
   useEffect(() => {
     if (dragTimeoutId) {
@@ -785,7 +792,7 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
       
       const tempMessage = {
         id: tempMessageId,
-        text: selectedFile ? `📎 ${selectedFile.name}` : messageToSend,
+        text: selectedFile ? `Uploading ${selectedFile.name}...` : messageToSend,
         sender: 'me',
         time: new Date().toLocaleTimeString([], {
           hour: '2-digit',
@@ -817,35 +824,87 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
       }
 
       const response = await messageAPI.sendMessage(formData, true);
+
       if (response.data || response.status === 200) {
         // Handle both file and text message responses
         const messageData = response.data;
         
         let realMessage;
         if (selectedFile && messageToSend.trim()) {
-          // Both file and text sent - handle file message
-          realMessage = {
-            id: messageData?.file?._id || messageData?._id || Date.now(),
-            text: `📎 ${selectedFile.name}`,
+          // Both file and text sent - backend creates two separate messages
+          const fileMessage = {
+            id: messageData?.file?._id || `${Date.now()}-file`,
+            text: messageData?.file?.content, // Cloudinary URL
             sender: 'me',
-            time: new Date(messageData?.file?.timestamp || messageData?.timestamp || Date.now()).toLocaleTimeString([], {
+            time: new Date(messageData?.file?.timestamp || Date.now()).toLocaleTimeString([], {
               hour: '2-digit',
               minute: '2-digit',
             }),
-            timestamp: messageData?.file?.timestamp || messageData?.timestamp || Date.now(),
+            timestamp: messageData?.file?.timestamp || Date.now(),
             name: user?.username,
             isSending: false,
-            isSeen: messageData?.file?.isSeen || messageData?.isSeen || false,
+            isSeen: messageData?.file?.isSeen || false,
             isFile: true,
             fileType: selectedFile?.type,
             fileName: selectedFile?.name,
-            fileUrl: messageData?.file?.content || messageData?.content
+            fileUrl: messageData?.file?.content
           };
+
+          const textMessage = {
+            id: messageData?.text?._id || `${Date.now()}-text`,
+            text: messageData?.text?.content || messageToSend,
+            sender: 'me',
+            time: new Date(messageData?.text?.timestamp || Date.now()).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            timestamp: messageData?.text?.timestamp || Date.now(),
+            name: user?.username,
+            isSending: false,
+            isSeen: messageData?.text?.isSeen || false,
+            isFile: false
+          };
+
+          // Replace temp message with file message and add text message
+          setMessages((prev) => {
+            const withoutTemp = prev.filter(msg => msg.id !== tempMessageId);
+            return [...withoutTemp, fileMessage, textMessage];
+          });
+
+          // Emit both messages via socket
+          socket.emit('send_message', {
+            messageId: fileMessage.id,
+            senderId: user.id,
+            receiverId: chatId,
+            content: fileMessage.text,
+            timestamp: fileMessage.timestamp,
+            roomId: chatId,
+            isSeen: fileMessage.isSeen,
+            isFile: true,
+            fileType: fileMessage.fileType,
+            fileName: fileMessage.fileName,
+            fileUrl: fileMessage.fileUrl
+          });
+
+          socket.emit('send_message', {
+            messageId: textMessage.id,
+            senderId: user.id,
+            receiverId: chatId,
+            content: textMessage.text,
+            timestamp: textMessage.timestamp,
+            roomId: chatId,
+            isSeen: textMessage.isSeen,
+            isFile: false
+          });
+
+          // Don't set realMessage since we handled messages directly above
+          realMessage = null;
         } else if (selectedFile) {
           // Only file sent
+          console.log('Creating file message with URL:', messageData?.content); // Debug log
           realMessage = {
             id: messageData?._id || Date.now(),
-            text: `📎 ${selectedFile.name}`,
+            text: messageData?.content, // Store Cloudinary URL in text
             sender: 'me',
             time: new Date(messageData?.timestamp || Date.now()).toLocaleTimeString([], {
               hour: '2-digit',
@@ -878,24 +937,28 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
           };
         }
 
-        setMessages((prev) => prev.map(msg => 
-          msg.id === tempMessageId ? realMessage : msg
-        ));
+        console.log('Final real message:', realMessage); // Debug log
 
-        // Use the global socket to emit message
-        socket.emit('send_message', {
-          messageId: realMessage.id,
-          senderId: user.id,
-          receiverId: chatId,
-          content: realMessage.text,
-          timestamp: realMessage.timestamp,
-          roomId: chatId,
-          isSeen: realMessage.isSeen,
-          isFile: realMessage.isFile,
-          fileType: realMessage.fileType,
-          fileName: realMessage.fileName,
-          fileUrl: realMessage.fileUrl
-        });
+        if (realMessage) {
+          setMessages((prev) => prev.map(msg => 
+            msg.id === tempMessageId ? realMessage : msg
+          ));
+
+          // Use the global socket to emit message
+          socket.emit('send_message', {
+            messageId: realMessage.id,
+            senderId: user.id,
+            receiverId: chatId,
+            content: realMessage.text, // This now contains the Cloudinary URL for files
+            timestamp: realMessage.timestamp,
+            roomId: chatId,
+            isSeen: realMessage.isSeen,
+            isFile: realMessage.isFile,
+            fileType: realMessage.fileType,
+            fileName: realMessage.fileName,
+            fileUrl: realMessage.fileUrl
+          });
+        }
       } else {
         // Fallback: Even if no data is returned, clear the loading state
         console.warn('No data returned from server, but message may have been sent');
@@ -1395,6 +1458,7 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
                     ) : (() => {
                       // Parse message content for Cloudinary files
                       const parsedContent = parseCloudinaryContent(msg.text);
+                      console.log('Parsed content for message:', msg.id, parsedContent); // Debug log
                       
                       if (parsedContent.hasFile) {
                         const filename = getFilenameFromUrl(parsedContent.fileUrl);
