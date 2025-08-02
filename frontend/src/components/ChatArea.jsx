@@ -816,26 +816,67 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
         formData.append('content', messageToSend.trim());
       }
 
-      const response = await messageAPI.sendMessage(formData, true); // Pass true to indicate form data
-
-      if (response.data) {
-        const realMessage = {
-          id: response.data._id || response.data.id || Date.now(),
-          text: selectedFile ? `📎 ${selectedFile.name}` : response.data.content || messageToSend,
-          sender: 'me',
-          time: new Date(response.data.timestamp || Date.now()).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-          timestamp: response.data.timestamp || Date.now(),
-          name: user?.username,
-          isSending: false,
-          isSeen: response.data.isSeen || false,
-          isFile: !!selectedFile,
-          fileType: selectedFile?.type,
-          fileName: selectedFile?.name,
-          fileUrl: response.data.fileUrl
-        };
+      const response = await messageAPI.sendMessage(formData, true);
+      if (response.data || response.status === 200) {
+        // Handle both file and text message responses
+        const messageData = response.data;
+        
+        let realMessage;
+        if (selectedFile && messageToSend.trim()) {
+          // Both file and text sent - handle file message
+          realMessage = {
+            id: messageData?.file?._id || messageData?._id || Date.now(),
+            text: `📎 ${selectedFile.name}`,
+            sender: 'me',
+            time: new Date(messageData?.file?.timestamp || messageData?.timestamp || Date.now()).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            timestamp: messageData?.file?.timestamp || messageData?.timestamp || Date.now(),
+            name: user?.username,
+            isSending: false,
+            isSeen: messageData?.file?.isSeen || messageData?.isSeen || false,
+            isFile: true,
+            fileType: selectedFile?.type,
+            fileName: selectedFile?.name,
+            fileUrl: messageData?.file?.content || messageData?.content
+          };
+        } else if (selectedFile) {
+          // Only file sent
+          realMessage = {
+            id: messageData?._id || Date.now(),
+            text: `📎 ${selectedFile.name}`,
+            sender: 'me',
+            time: new Date(messageData?.timestamp || Date.now()).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            timestamp: messageData?.timestamp || Date.now(),
+            name: user?.username,
+            isSending: false,
+            isSeen: messageData?.isSeen || false,
+            isFile: true,
+            fileType: selectedFile?.type,
+            fileName: selectedFile?.name,
+            fileUrl: messageData?.content
+          };
+        } else {
+          // Only text message
+          realMessage = {
+            id: messageData?._id || Date.now(),
+            text: messageData?.content || messageToSend,
+            sender: 'me',
+            time: new Date(messageData?.timestamp || Date.now()).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            timestamp: messageData?.timestamp || Date.now(),
+            name: user?.username,
+            isSending: false,
+            isSeen: messageData?.isSeen || false,
+            isFile: false
+          };
+        }
 
         setMessages((prev) => prev.map(msg => 
           msg.id === tempMessageId ? realMessage : msg
@@ -855,6 +896,12 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
           fileName: realMessage.fileName,
           fileUrl: realMessage.fileUrl
         });
+      } else {
+        // Fallback: Even if no data is returned, clear the loading state
+        console.warn('No data returned from server, but message may have been sent');
+        setMessages((prev) => prev.map(msg => 
+          msg.id === tempMessageId ? { ...msg, isSending: false } : msg
+        ));
       }
 
       // Clear file selection

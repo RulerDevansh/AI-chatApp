@@ -14,7 +14,7 @@ export default async function sendMessageService(req, res){
             const message1 = await sendMessage(friendId, userId, fileURL);
             const message2 = await sendMessage(friendId, userId, content);
             if(message1 && message2){
-                return { status: 200, message: "message sent successfully"}
+                return { status: 200, message: "message sent successfully", data: { file: message1, text: message2 }}
             }
             else if(!message1 && !message2){
                 return { status: 500, error: "Error in sending both files and message"};
@@ -32,7 +32,7 @@ export default async function sendMessageService(req, res){
             if(!message){
                 return { status: 500, error: "something went wrong while sending file"};
             }
-            return { status: 200, message: "file sent successfully"};
+            return { status: 200, message: "file sent successfully", data: message};
         }
         else{
             const content = req.body.content;
