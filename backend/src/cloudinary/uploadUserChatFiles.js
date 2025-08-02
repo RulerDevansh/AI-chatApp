@@ -1,5 +1,5 @@
 import { cloudinary } from "../cloudinary/config.js";
-import fs from "fs/promises";
+import fs from "fs";
 
 export default async function uploadUserChatFilesToCloudinary(file) {
   try {
@@ -8,7 +8,9 @@ export default async function uploadUserChatFilesToCloudinary(file) {
       resource_type: file.mimetype.startsWith('video') ? 'video' : 'auto',
     });
 
-    await fs.unlink(file.path);
+    fs.unlink(file.path, (err) => {
+        if (err) console.error('Error deleting local file:', err);
+    }); 
     
     return result.secure_url;
   } catch (err) {
