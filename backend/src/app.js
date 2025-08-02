@@ -6,7 +6,7 @@ const app = express()
 
 const allowedOrigins = [
     'http://localhost:5173',
-    'https://devansh-ai-chat.vercel.app',
+    'http://localhost:5174',
     process.env.CORS_ORIGIN 
 ].filter(Boolean);
 

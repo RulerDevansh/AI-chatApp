@@ -25,6 +25,7 @@ const ChatDashboard = () => {
   const [userStatuses, setUserStatuses] = useState({});
   const [isLoadingConnections, setIsLoadingConnections] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [lastNotificationUpdate, setLastNotificationUpdate] = useState({});
   
   // Mobile drag state
   const [isDragging, setIsDragging] = useState(false);
@@ -243,6 +244,72 @@ const ChatDashboard = () => {
     };
   }, []);
 
+  // Function to load unread message counts
+  const loadUnreadMessages = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      const response = await messageAPI.getUnreadMessages();
+      const unreadData = response.data || [];
+      
+      // Convert unread data to notifications object for sidebar
+      const newNotifications = {};
+      unreadData.forEach(item => {
+        newNotifications[item.senderId] = item.count;
+      });
+      
+      // Only update notifications if there are actual changes to prevent conflicts
+      setNotifications(prev => {
+        const hasChanges = Object.keys(newNotifications).some(senderId => 
+          prev[senderId] !== newNotifications[senderId]
+        ) || Object.keys(prev).some(senderId => 
+          !(senderId in newNotifications) && prev[senderId] > 0
+        );
+        
+        return hasChanges ? newNotifications : prev;
+      });
+      
+      // Update chat list with unread counts and reorder chats with unread messages to top
+      setChats(prevChats => {
+        const updatedChats = prevChats.map(chat => {
+          const unreadCount = newNotifications[chat.id] || 0;
+          // Only update if the count actually changed
+          if (chat.unread !== unreadCount || chat.lastMessage?.isRead !== (unreadCount === 0)) {
+            return {
+              ...chat,
+              unread: unreadCount,
+              lastMessage: {
+                ...chat.lastMessage,
+                isRead: unreadCount === 0
+              }
+            };
+          }
+          return chat;
+        });
+
+        // Reorder chats: chats with unread messages should be at the top
+        const chatsWithUnread = updatedChats.filter(chat => newNotifications[chat.id] > 0);
+        const chatsWithoutUnread = updatedChats.filter(chat => !newNotifications[chat.id] || newNotifications[chat.id] === 0);
+        
+        // Sort chats with unread by unread count (highest first) and then by time
+        chatsWithUnread.sort((a, b) => {
+          const aCount = newNotifications[a.id] || 0;
+          const bCount = newNotifications[b.id] || 0;
+          if (aCount !== bCount) {
+            return bCount - aCount; // Higher unread count first
+          }
+          // If same unread count, sort by last message time
+          return new Date(b.lastMessage?.time || 0) - new Date(a.lastMessage?.time || 0);
+        });
+
+        // Return reordered list: unread chats first, then others
+        return [...chatsWithUnread, ...chatsWithoutUnread];
+      });
+    } catch (error) {
+      console.error('Error loading unread messages:', error);
+    }
+  }, [user?.id]);
+
   // Function to load connections
   const loadConnections = useCallback(async () => {
     setIsLoadingConnections(true);
@@ -314,51 +381,16 @@ const ChatDashboard = () => {
       loadConnections();
       loadUnreadMessages(); // Load unread message counts
       
-      // Set up periodic refresh of unread messages (every 30 seconds)
+      // Set up periodic refresh of unread messages (every 60 seconds to reduce conflicts)
       const unreadRefreshInterval = setInterval(() => {
         loadUnreadMessages();
-      }, 30000);
+      }, 60000);
 
       return () => {
         clearInterval(unreadRefreshInterval);
       };
     }
   }, [user?.id, loadConnections, loadUnreadMessages]);
-
-  // Function to load unread message counts
-  const loadUnreadMessages = useCallback(async () => {
-    if (!user?.id) return;
-    
-    try {
-      const response = await messageAPI.getUnreadMessages();
-      const unreadData = response.data || [];
-      
-      // Convert unread data to notifications object for sidebar
-      const newNotifications = {};
-      unreadData.forEach(item => {
-        newNotifications[item.senderId] = item.count;
-      });
-      
-      setNotifications(newNotifications);
-      
-      // Update chat list with unread counts
-      setChats(prevChats => {
-        return prevChats.map(chat => {
-          const unreadCount = newNotifications[chat.id] || 0;
-          return {
-            ...chat,
-            unread: unreadCount,
-            lastMessage: {
-              ...chat.lastMessage,
-              isRead: unreadCount === 0
-            }
-          };
-        });
-      });
-    } catch (error) {
-      console.error('Error loading unread messages:', error);
-    }
-  }, [user?.id]);
 
   // Update current chat's last message when messages change
   useEffect(() => {
@@ -398,6 +430,7 @@ const ChatDashboard = () => {
   // Create stable refs for functions to avoid dependency issues
   const debouncedStatusUpdateRef = useRef();
   const loadConnectionsRef = useRef();
+  const loadUnreadMessagesRef = useRef();
   const socketConnectedRef = useRef(socketConnected);
 
   // Update refs when functions change
@@ -408,6 +441,10 @@ const ChatDashboard = () => {
   useEffect(() => {
     loadConnectionsRef.current = loadConnections;
   }, [loadConnections]);
+
+  useEffect(() => {
+    loadUnreadMessagesRef.current = loadUnreadMessages;
+  }, [loadUnreadMessages]);
 
   useEffect(() => {
     socketConnectedRef.current = socketConnected;
@@ -481,13 +518,8 @@ const ChatDashboard = () => {
           if (window.chatAreaMessageHandler && !isCleaningUp) {
             window.chatAreaMessageHandler(data);
           }
-        } else {
-          // If it's not from the currently active chat, add notification
-          setNotifications(prev => ({
-            ...prev,
-            [senderId]: (prev[senderId] || 0) + 1
-          }));
         }
+        // Note: Don't increment notifications here since we handle it via 'unread_message_notification' event
         
         // Update the chat list with the new message
         setChats(prevChats => {
@@ -523,8 +555,8 @@ const ChatDashboard = () => {
                 loadConnectionsRef.current();
                 // Also reload unread messages to sync notifications
                 setTimeout(() => {
-                  if (!isCleaningUp) {
-                    loadUnreadMessages();
+                  if (!isCleaningUp && loadUnreadMessagesRef.current) {
+                    loadUnreadMessagesRef.current();
                   }
                 }, 200);
               }, 100);
@@ -622,10 +654,21 @@ const ChatDashboard = () => {
       
       // Only update notification if it's not from the currently active chat
       if (selectedChatRef.current?.id !== senderId) {
-        setNotifications(prev => ({
-          ...prev,
-          [senderId]: (prev[senderId] || 0) + 1
-        }));
+        const now = Date.now();
+        const lastUpdate = lastNotificationUpdate[senderId] || 0;
+        
+        // Debounce notifications to prevent double counting (500ms)
+        if (now - lastUpdate > 500) {
+          setLastNotificationUpdate(prev => ({ ...prev, [senderId]: now }));
+          
+          setNotifications(prev => {
+            const currentCount = prev[senderId] || 0;
+            return {
+              ...prev,
+              [senderId]: currentCount + 1
+            };
+          });
+        }
       }
     };
 
