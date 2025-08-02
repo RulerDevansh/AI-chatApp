@@ -109,6 +109,15 @@ export const setupSocket = (server) => {
         isSeen: shouldMarkAsSeen
       });
 
+      // Emit notification update to receiver if message is not seen
+      if (!shouldMarkAsSeen) {
+        socket.to(`user_${receiverId}`).emit('unread_message_notification', {
+          senderId,
+          messageId,
+          timestamp
+        });
+      }
+
       // If message should be marked as seen, notify sender immediately
       if (shouldMarkAsSeen) {
         // Update database to mark message as seen
@@ -143,16 +152,23 @@ export const setupSocket = (server) => {
       // Update database to mark messages as seen
       try {
         await markMsgSeenRepo(receiverId, senderId);
+        
+        // Notify sender that their messages have been seen
+        socket.to(`user_${senderId}`).emit('messages_seen', {
+          senderId: senderId,
+          receiverId: receiverId,
+          roomId: senderId
+        });
+
+        // Emit notification cleared event to the receiver
+        socket.emit('notifications_cleared', {
+          chatId: senderId,
+          clearedBy: receiverId
+        });
+        
       } catch (error) {
         console.error('Error marking messages as seen in database:', error);
       }
-      
-      // Notify sender that their messages have been seen
-      socket.to(`user_${senderId}`).emit('messages_seen', {
-        senderId: senderId,
-        receiverId: receiverId,
-        roomId: senderId
-      });
     });
 
     // Join specific chat room
@@ -214,7 +230,7 @@ export const setupSocket = (server) => {
 
       // Important: When both users are now in the same room after this join
       // Mark all unseen messages as seen since user opened the chat
-      setTimeout(() => {
+      setTimeout(async () => {
         const updatedUserStatus = userStatuses.get(userId);
         const updatedOtherUserStatus = userStatuses.get(roomId);
         
@@ -222,13 +238,26 @@ export const setupSocket = (server) => {
         const otherUserInUserRoom = updatedOtherUserStatus && updatedOtherUserStatus.currentRoom === userId;
         
         // When user joins a room, mark all messages from the other user as seen
-        // This implements the requirement: "mark all messages of other user seen as soon as current user opens that user's chat"
-        socket.to(`user_${roomId}`).emit('messages_seen', {
-          senderId: roomId,
-          receiverId: userId,
-          timestamp: Date.now(),
-          allMessages: true // Flag to indicate all messages should be marked as seen
-        });
+        try {
+          await markMsgSeenRepo(userId, roomId);
+          
+          // Notify that messages were seen
+          socket.to(`user_${roomId}`).emit('messages_seen', {
+            senderId: roomId,
+            receiverId: userId,
+            timestamp: Date.now(),
+            allMessages: true // Flag to indicate all messages should be marked as seen
+          });
+
+          // Emit notification cleared event
+          socket.emit('notifications_cleared', {
+            chatId: roomId,
+            clearedBy: userId
+          });
+          
+        } catch (error) {
+          console.error('Error marking messages as seen on room join:', error);
+        }
         
         // If both users are now in the same room, also mark user's messages to roomId as seen
         if (userInOtherRoom && otherUserInUserRoom) {

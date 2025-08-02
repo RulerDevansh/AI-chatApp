@@ -146,6 +146,16 @@ export const messageAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Get Unread Message Counts
+  getUnreadMessages: async () => {
+    try {
+      const response = await api.get('/unreadMessages');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 

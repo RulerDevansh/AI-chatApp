@@ -16,6 +16,7 @@ import updateBioController from '../controllers/updateBio.controller.js'
 import markMsgAsSeenController from '../controllers/markMsgSeen.controller.js';
 import updateProfilePictureController from '../controllers/updateProfilePicture.controller.js';
 import updateUserPasswordController from '../controllers/updatePassword.controller.js';
+import { unreadMessagesController } from '../controllers/unreadMessages.controller.js';
 import AI from '../AI/index.js';
 import { invitationReceivedController, invitationSentController } from '../controllers/invitationList.controller.js';
 import { isLoggedIn } from '../validation/index.js';
@@ -42,6 +43,7 @@ userRouter.post('/rejectInvitation', isLoggedIn, rejectInvitationController); //
 userRouter.post('/deleteMessage', isLoggedIn, deleteMessageController); // Changed GET to POST
 userRouter.post('/updateBio', isLoggedIn, updateBioController);
 userRouter.post('/markMsgSeen', isLoggedIn, markMsgAsSeenController);
+userRouter.get('/unreadMessages', isLoggedIn, unreadMessagesController);
 userRouter.post('/updateProfilePicture', isLoggedIn, upload.single('file'), updateProfilePictureController);
 userRouter.post('/updatePassword', isLoggedIn, updateUserPasswordController); // pxlvy
 

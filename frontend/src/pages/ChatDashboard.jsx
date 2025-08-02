@@ -6,7 +6,7 @@ import InvitationManager from '../components/InvitationManager';
 import FriendProfile from '../components/FriendProfile';
 import socket from '../utils/socket';
 import { useAuth } from '../context/useAuth';
-import { connectionAPI } from '../utils/api';
+import { connectionAPI, messageAPI } from '../utils/api';
 import { Menu, X } from 'lucide-react';
 
 const ChatDashboard = () => {
@@ -312,8 +312,53 @@ const ChatDashboard = () => {
   useEffect(() => {
     if (user?.id) {
       loadConnections();
+      loadUnreadMessages(); // Load unread message counts
+      
+      // Set up periodic refresh of unread messages (every 30 seconds)
+      const unreadRefreshInterval = setInterval(() => {
+        loadUnreadMessages();
+      }, 30000);
+
+      return () => {
+        clearInterval(unreadRefreshInterval);
+      };
     }
-  }, [user?.id, loadConnections]);
+  }, [user?.id, loadConnections, loadUnreadMessages]);
+
+  // Function to load unread message counts
+  const loadUnreadMessages = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      const response = await messageAPI.getUnreadMessages();
+      const unreadData = response.data || [];
+      
+      // Convert unread data to notifications object for sidebar
+      const newNotifications = {};
+      unreadData.forEach(item => {
+        newNotifications[item.senderId] = item.count;
+      });
+      
+      setNotifications(newNotifications);
+      
+      // Update chat list with unread counts
+      setChats(prevChats => {
+        return prevChats.map(chat => {
+          const unreadCount = newNotifications[chat.id] || 0;
+          return {
+            ...chat,
+            unread: unreadCount,
+            lastMessage: {
+              ...chat.lastMessage,
+              isRead: unreadCount === 0
+            }
+          };
+        });
+      });
+    } catch (error) {
+      console.error('Error loading unread messages:', error);
+    }
+  }, [user?.id]);
 
   // Update current chat's last message when messages change
   useEffect(() => {
@@ -476,6 +521,12 @@ const ChatDashboard = () => {
             if (!isCleaningUp && loadConnectionsRef.current) {
               setTimeout(() => {
                 loadConnectionsRef.current();
+                // Also reload unread messages to sync notifications
+                setTimeout(() => {
+                  if (!isCleaningUp) {
+                    loadUnreadMessages();
+                  }
+                }, 200);
               }, 100);
             }
             return prevChats;
@@ -546,6 +597,15 @@ const ChatDashboard = () => {
       
       const { senderId, receiverId } = data;
       
+      // Clear notifications when messages are marked as seen
+      if (senderId && receiverId === user.id) {
+        setNotifications(prev => {
+          const updated = { ...prev };
+          delete updated[senderId];
+          return updated;
+        });
+      }
+      
       // Forward to ChatArea if it's for the current chat
       if (selectedChatRef.current?.id === senderId || selectedChatRef.current?.id === receiverId) {
         if (window.chatAreaSeenHandler && !isCleaningUp) {
@@ -554,12 +614,42 @@ const ChatDashboard = () => {
       }
     };
 
+    // Handle unread message notifications
+    const handleUnreadNotification = (data) => {
+      if (isCleaningUp) return;
+      
+      const { senderId } = data;
+      
+      // Only update notification if it's not from the currently active chat
+      if (selectedChatRef.current?.id !== senderId) {
+        setNotifications(prev => ({
+          ...prev,
+          [senderId]: (prev[senderId] || 0) + 1
+        }));
+      }
+    };
+
+    // Handle notifications cleared events
+    const handleNotificationsCleared = (data) => {
+      if (isCleaningUp) return;
+      
+      const { chatId } = data;
+      
+      setNotifications(prev => {
+        const updated = { ...prev };
+        delete updated[chatId];
+        return updated;
+      });
+    };
+
     // Set up socket event listeners
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
     socket.on('receive_message', handleGlobalMessage);
     socket.on('message_deleted', handleGlobalMessageDeleted);
     socket.on('messages_seen', handleMessagesSeen);
+    socket.on('unread_message_notification', handleUnreadNotification);
+    socket.on('notifications_cleared', handleNotificationsCleared);
     socket.on('user_status_changed', handleSocketUserStatusChange);
 
     // Check if already connected
@@ -595,6 +685,8 @@ const ChatDashboard = () => {
       socket.off('receive_message', handleGlobalMessage);
       socket.off('message_deleted', handleGlobalMessageDeleted);
       socket.off('messages_seen', handleMessagesSeen);
+      socket.off('unread_message_notification', handleUnreadNotification);
+      socket.off('notifications_cleared', handleNotificationsCleared);
       socket.off('user_status_changed', handleSocketUserStatusChange);
       
       // Clean up global manager
@@ -626,7 +718,7 @@ const ChatDashboard = () => {
   }, [socketConnected, debouncedStatusUpdate]);
 
   // Clear notifications when a chat is selected
-  const handleChatSelect = (chat) => {
+  const handleChatSelect = async (chat) => {
     setSelectedChat(chat);
     setIsSidebarOpen(false);
     
@@ -637,6 +729,13 @@ const ChatDashboard = () => {
         delete updated[chat.id];
         return updated;
       });
+
+      // Mark messages as seen in the backend
+      try {
+        await messageAPI.markMessagesAsSeen(chat.id);
+      } catch (error) {
+        console.error('Error marking messages as seen:', error);
+      }
     }
 
     // Mark chat as read in sidebar

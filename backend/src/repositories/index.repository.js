@@ -1,6 +1,7 @@
 import User from '../models/user.model.js';
 import Connection from '../models/connection.model.js';
 import Message from '../models/message.model.js';
+import mongoose from 'mongoose';
 
 export async function registerUser(userDetails) {
     try {
@@ -292,5 +293,57 @@ export async function updateUserPasswordRepo(user, password){
     } catch(error){
         console.log("Error in updateUserPassewordRepo: ", error);
         return { status: 500, error: "Internal Server Error"};
+    }
+}
+
+export async function getUnreadMessageCounts(userId) {
+    try {
+        // Convert userId to ObjectId if it's a string
+        const userObjectId = typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId;
+        
+        // Get all unique conversation partners (senders who sent messages to this user)
+        const unreadCounts = await Message.aggregate([
+            {
+                $match: {
+                    receiver: userObjectId,
+                    isSeen: false
+                }
+            },
+            {
+                $group: {
+                    _id: "$sender",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "senderInfo"
+                }
+            },
+            {
+                $project: {
+                    senderId: "$_id",
+                    count: 1,
+                    senderInfo: { $arrayElemAt: ["$senderInfo", 0] }
+                }
+            }
+        ]);
+
+        // Format the response to include sender details
+        const formattedCounts = unreadCounts.map(item => ({
+            senderId: item.senderId.toString(),
+            count: item.count,
+            senderName: item.senderInfo?.username || "Unknown User",
+            senderEmail: item.senderInfo?.email || null,
+            senderProfilePicture: item.senderInfo?.profilePicture || null
+        }));
+
+        return formattedCounts;
+    } catch (error) {
+        console.error("Error in getUnreadMessageCounts:", error);
+        throw new Error("Internal Server Error");
     }
 }
