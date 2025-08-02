@@ -1,4 +1,5 @@
 import { findUserByEmail, findMessageById, deleteMessageById } from '../repositories/index.repository.js';
+import deleteUserChatFileFromCloudinary, { isCloudinaryUrl, extractCloudinaryUrl } from '../cloudinary/deleteUserChatFiles.js';
 
 export default async function deleteMessageService(req, res) {
     try {
@@ -44,6 +45,23 @@ export default async function deleteMessageService(req, res) {
             return { status: 403, error: "You can only delete messages you sent or received" };
         }
 
+        // Check if message contains a file and attempt to delete from Cloudinary
+        let cloudinaryDeletionSuccess = true;
+        if (message.content && isCloudinaryUrl(message.content)) {
+            console.log('Message contains Cloudinary file, attempting to delete from cloud storage');
+            const cloudinaryUrl = extractCloudinaryUrl(message.content);
+            
+            if (cloudinaryUrl) {
+                cloudinaryDeletionSuccess = await deleteUserChatFileFromCloudinary(cloudinaryUrl);
+                
+                if (!cloudinaryDeletionSuccess) {
+                    console.warn('Failed to delete file from Cloudinary, but continuing with message deletion');
+                    // Note: We continue with message deletion even if Cloudinary deletion fails
+                    // to avoid orphaned database records
+                }
+            }
+        }
+
         const deletedMessage = await deleteMessageById(messageId);
         
         if (!deletedMessage) {
@@ -52,7 +70,18 @@ export default async function deleteMessageService(req, res) {
         }
         
         console.log("Message deleted successfully:", deletedMessage);
-        return { status: 200, data: { message: "Message deleted successfully" } };
+        
+        // Include Cloudinary deletion status in response
+        const response = { 
+            message: "Message deleted successfully",
+            cloudinaryDeletion: cloudinaryDeletionSuccess 
+        };
+        
+        if (!cloudinaryDeletionSuccess) {
+            response.warning = "Message deleted but associated file may still exist in cloud storage";
+        }
+        
+        return { status: 200, data: response };
         
     } catch (error) {
         console.error("Error in deleteMessageService:", error);
