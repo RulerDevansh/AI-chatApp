@@ -313,7 +313,6 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
   useEffect(() => {
     const testUrl = "https://res.cloudinary.com/test/image/upload/v123456789/test.jpg";
     const testResult = parseCloudinaryContent(testUrl);
-    console.log('Test parseCloudinaryContent:', testResult);
   }, []);
 
   // Reset drag state when chat changes
@@ -901,7 +900,6 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
           realMessage = null;
         } else if (selectedFile) {
           // Only file sent
-          console.log('Creating file message with URL:', messageData?.content); // Debug log
           realMessage = {
             id: messageData?._id || Date.now(),
             text: messageData?.content, // Store Cloudinary URL in text
@@ -936,8 +934,6 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
             isFile: false
           };
         }
-
-        console.log('Final real message:', realMessage); // Debug log
 
         if (realMessage) {
           setMessages((prev) => prev.map(msg => 
@@ -1458,7 +1454,6 @@ const ChatArea = ({ chat, onShowUserProfile, onMessagesUpdate, onUserStatusChang
                     ) : (() => {
                       // Parse message content for Cloudinary files
                       const parsedContent = parseCloudinaryContent(msg.text);
-                      console.log('Parsed content for message:', msg.id, parsedContent); // Debug log
                       
                       if (parsedContent.hasFile) {
                         const filename = getFilenameFromUrl(parsedContent.fileUrl);
