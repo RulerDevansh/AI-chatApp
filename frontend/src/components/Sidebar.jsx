@@ -185,7 +185,7 @@ const Sidebar = ({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="bg-gray-800 dark:bg-gray-900 text-white p-4 flex items-center justify-between transition-colors duration-200">
+      <div className="sidebar-header bg-gray-800 dark:bg-gray-900 text-white p-4 flex items-center justify-between transition-colors duration-200">
         <div className="flex items-center space-x-3">
           <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg">
             {user?.profilePicture ? (
@@ -314,7 +314,7 @@ const Sidebar = ({
       </div>
 
       {/* Chat List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+      <div className="chat-list-container flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1" style={{ WebkitOverflowScrolling: 'touch' }}>
         {isLoadingConnections ? (
           <div className="flex flex-col items-center justify-center p-8 text-gray-500 dark:text-gray-400">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mb-3"></div>

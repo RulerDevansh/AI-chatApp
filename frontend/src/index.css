@@ -8,6 +8,10 @@
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+  /* Enhanced mobile touch scrolling */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -47,6 +51,14 @@
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, rgba(55, 65, 81, 0.8) 0%, rgba(31, 41, 55, 1) 100%);
+}
+
+/* Enhanced chat list scrolling for mobile */
+.chat-list-container {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:active {
