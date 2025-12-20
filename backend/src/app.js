@@ -1,13 +1,18 @@
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import dotenv from 'dotenv'
+
+// Load environment variables before reading process.env
+dotenv.config()
 
 const app = express()
 
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
-    process.env.CORS_ORIGIN 
+    'https://devansh-ai-chat.vercel.app',
+    process.env.CORS_ORIGIN
 ].filter(Boolean);
 
 app.use(cors({
