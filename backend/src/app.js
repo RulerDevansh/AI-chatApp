@@ -2,29 +2,29 @@ import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
-import { getAllowedOrigins } from './utils/origins.js'
+import { isAllowedOrigin } from './utils/origins.js'
 
 // Load environment variables before reading process.env
 dotenv.config()
 
 const app = express()
-const allowedOrigins = getAllowedOrigins();
 
-app.use(cors({
+const corsOptions = {
     origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.includes(origin)) {
+        if (isAllowedOrigin(origin)) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     exposedHeaders: ['set-cookie']
-}))
+};
+
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
 
 app.use(express.urlencoded({extended: true ,limit: "16kb"}))
 app.use(express.json({limit: "16kb"}));

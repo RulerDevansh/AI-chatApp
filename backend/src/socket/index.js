@@ -1,13 +1,17 @@
 import { Server } from 'socket.io';
 import { markMsgSeenRepo } from '../repositories/index.repository.js';
-import { getAllowedOrigins } from '../utils/origins.js';
+import { isAllowedOrigin } from '../utils/origins.js';
 
 export const setupSocket = (server) => {
-  const allowedOrigins = getAllowedOrigins();
-
   const io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
+      origin: (origin, callback) => {
+        if (isAllowedOrigin(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       methods: ['GET', 'POST'],
       credentials: true
     },
