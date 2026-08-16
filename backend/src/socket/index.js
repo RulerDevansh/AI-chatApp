@@ -1,12 +1,9 @@
 import { Server } from 'socket.io';
 import { markMsgSeenRepo } from '../repositories/index.repository.js';
+import { getAllowedOrigins } from '../utils/origins.js';
 
 export const setupSocket = (server) => {
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'https://devansh-ai-chat.vercel.app',
-    process.env.CORS_ORIGIN
-  ].filter(Boolean);
+  const allowedOrigins = getAllowedOrigins();
 
   const io = new Server(server, {
     cors: {
